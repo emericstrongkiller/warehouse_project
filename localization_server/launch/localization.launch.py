@@ -8,7 +8,7 @@ from launch.substitutions import LaunchConfiguration, PathJoinSubstitution, Pyth
 
 def generate_launch_description():
     
-    nav2_yaml = os.path.join(get_package_share_directory('localization_server'), 'config', 'amcl_config_real.yaml')
+    nav2_yaml = os.path.join(get_package_share_directory('localization_server'), 'config', 'amcl_config_sim.yaml')
 
     # Declare the launch argument for the map file name
     map_file_arg = DeclareLaunchArgument(
