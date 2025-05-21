@@ -38,7 +38,7 @@ def generate_launch_description():
             executable="rviz2",
             name="rviz2",
             arguments=["-d", "/home/user/ros2_ws/src/warehouse_project/cartographer_slam/rviz/mapping.rviz"],
-            parameters=[{"use_sim_time": True}],
+            parameters=[{"use_sim_time": use_sim_time}],
         ),
 
         Node(

@@ -23,16 +23,16 @@ def generate_launch_description():
 
     # Determine config file names based on the condition, using PythonExpression for the filename part
     controller_config_name = PythonExpression([
-        "'controller_sim.yaml' if '", use_sim_time, "' == 'true' else 'controller_real.yaml'"
+        "'controller_sim.yaml' if '", use_sim_time, "' == 'True' else 'controller_real.yaml'"
     ])
     bt_navigator_config_name = PythonExpression([
-        "'bt_navigator_sim.yaml' if '", use_sim_time, "' == 'true' else 'bt_navigator_real.yaml'"
+        "'bt_navigator_sim.yaml' if '", use_sim_time, "' == 'True' else 'bt_navigator_real.yaml'"
     ])
     planner_config_name = PythonExpression([
-        "'planner_sim.yaml' if '", use_sim_time, "' == 'true' else 'planner_real.yaml'"
+        "'planner_sim.yaml' if '", use_sim_time, "' == 'True' else 'planner_real.yaml'"
     ])
     recovery_config_name = PythonExpression([
-        "'recoveries_sim.yaml' if '", use_sim_time, "' == 'true' else 'recoveries_real.yaml'"
+        "'recoveries_sim.yaml' if '", use_sim_time, "' == 'True' else 'recoveries_real.yaml'"
     ])
 
     # Construct full paths using PathJoinSubstitution
@@ -42,7 +42,9 @@ def generate_launch_description():
     recovery_yaml = PathJoinSubstitution([config_dir, 'config', recovery_config_name])
 
     # Define remappings list for the simulation case
-    cmd_vel_remappings_sim = [('cmd_vel', '/diffbot_base_controller/cmd_vel_unstamped')]
+    optional_remap = PythonExpression([
+        "'/diffbot_base_controller/cmd_vel_unstamped' if '", use_sim_time, "' == 'True' else 'cmd_vel'"
+    ])
 
     return LaunchDescription([
         use_sim_time_param, # Use use_sim_time_param as declared
@@ -54,19 +56,7 @@ def generate_launch_description():
             name='controller_server',
             output='screen',
             parameters=[controller_yaml, {'use_sim_time': use_sim_time}],
-            remappings=cmd_vel_remappings_sim, # Apply remapping
-            condition=is_sim # Only launch this node in simulation
-        ),
-
-        # Node for controller_server on real robot (without remapping)
-        Node(
-            package='nav2_controller',
-            executable='controller_server',
-            name='controller_server',
-            output='screen',
-            parameters=[controller_yaml, {'use_sim_time': use_sim_time}],
-            remappings=[], # No remapping
-            condition=is_real # Only launch this node on the real robot
+            remappings=[('cmd_vel', optional_remap)]
         ),
 
         Node(
