@@ -28,7 +28,7 @@ def main():
     # worker at the pallet jack 7 for shipping. This request would
     # contain the shelf ID ("shelf_A") and shipping destination ("pallet_jack7")
     ####################
-    goal_pos = [1.0, 0.0]
+    goal_pos = [5.4, 0.0]
     ####################
 
     rclpy.init()
@@ -67,8 +67,8 @@ def main():
     # Using valid quaternion values
     shelf_item_pose.pose.orientation.x = 0.0
     shelf_item_pose.pose.orientation.y = 0.0
-    shelf_item_pose.pose.orientation.z = 0.0
-    shelf_item_pose.pose.orientation.w = 1.0
+    shelf_item_pose.pose.orientation.z = math.sin(-math.pi/4)
+    shelf_item_pose.pose.orientation.w = math.cos(-math.pi/4)
     print('Perceived a request to go to goal pos')
     navigator.goToPose(shelf_item_pose)
 
@@ -120,7 +120,7 @@ def rotate_360_degrees(publisher, angular_speed=0.5):
     
     # Calculate time needed for a full 360-degree rotation
     # 2π radians = 360 degrees
-    rotation_time = 6 * math.pi / abs(angular_speed)
+    rotation_time = 4 * math.pi / abs(angular_speed)
     
     # Start rotation
     start_time = time.time()
