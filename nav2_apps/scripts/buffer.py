@@ -140,12 +140,14 @@ def move_robot_timed(
 
 def main():
     ####################
-    goal_pos = [5.4, 0.0]
-    shipping_pos = [2.2, 0.5]
-    shipping_pos2 = [2.2, 1.5]
+    # --- THIS IS THE MODIFIED GOAL POSITION ---
+    goal_pos = [4.50, -0.05]
+    # ------------------------------------------
+    shipping_pos = [2.1848, 0.5]
+    shipping_pos2 = [2.1848, 1.20811]
     backward_move_duration = 3.0
     backward_move_speed = -0.2
-    put_down_backward_duration = 6.0
+    put_down_backward_duration = 4.0
     forward_move_speed = 0.2
     forward_move_duration = 6.0
     angular_move_speed = -0.5
@@ -170,16 +172,12 @@ def main():
     initial_pose.pose.position.x = 0.0
     initial_pose.pose.position.y = 0.0
     initial_pose.pose.orientation.w = 1.0
-    navigator.setInitialPose(initial_pose)
 
     navigator.waitUntilNav2Active()
 
     cmd_vel_pub = navigator.create_publisher(
-        Twist, "/cmd_vel", 10
+        Twist, "/diffbot_base_controller/cmd_vel_unstamped", 10
     )
-    navigator.get_logger().info("Starting 360-degree rotation...")
-    rotate_360_degrees(cmd_vel_pub, navigator)
-    navigator.get_logger().info("Rotation complete!")
 
     shelf_item_pose = PoseStamped()
     shelf_item_pose.header.frame_id = "map"
@@ -189,7 +187,7 @@ def main():
     shelf_item_pose.pose.orientation.z = math.sin(-math.pi / 4)
     shelf_item_pose.pose.orientation.w = math.cos(-math.pi / 4)
     navigator.get_logger().info(
-        f"Perceived a request to go to goal pos: {goal_pos}"
+        f"Robot is localized. Going to first goal: {goal_pos}"
     )
     navigator.goToPose(shelf_item_pose)
 
@@ -372,7 +370,6 @@ def main():
                         "Successfully reached second shipping destination!"
                     )
 
-                    # --- START OF NEW "PUT DOWN" LOGIC ---
                     navigator.get_logger().info(
                         "Reverting robot footprint to SMALL size..."
                     )
@@ -439,7 +436,6 @@ def main():
                         navigator.get_logger().error(
                             "Failed to return to base."
                         )
-                    # --- END OF NEW LOGIC ---
 
                 elif shipping_result_2 == TaskResult.CANCELED:
                     navigator.get_logger().warn(
@@ -473,24 +469,6 @@ def main():
 
     navigator.get_logger().info("Script finished.")
     exit(0)
-
-
-def rotate_360_degrees(publisher, node: Node, angular_speed=0.5):
-    twist = Twist()
-    twist.angular.z = angular_speed
-    rotation_time = 2 * math.pi / abs(angular_speed)
-    start_time = time.time()
-    rate_sleep_time = 0.1
-    while (time.time() - start_time) < rotation_time:
-        if not rclpy.ok():
-            node.get_logger().warn("ROS shutting down, stopping rotation.")
-            break
-        publisher.publish(twist)
-        time.sleep(rate_sleep_time)
-    if rclpy.ok():
-        twist.angular.z = 0.0
-        publisher.publish(twist)
-        time.sleep(0.5)
 
 
 if __name__ == "__main__":

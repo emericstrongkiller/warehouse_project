@@ -140,9 +140,9 @@ def move_robot_timed(
 
 def main():
     ####################
-    goal_pos = [5.4, 0.0]
-    shipping_pos = [2.1, 0.5]
-    shipping_pos2 = [2.1, 1.3]
+    goal_pos = [4.50, -0.05]
+    shipping_pos = [2.1848, 0.5]
+    shipping_pos2 = [2.1848, 1.20811]
     backward_move_duration = 3.0
     backward_move_speed = -0.2
     put_down_backward_duration = 4.0
@@ -164,7 +164,6 @@ def main():
         )
     navigator.get_logger().info('"/approach_shelf" service is available.')
 
-    # The initial pose is still defined here for the final "return to base" goal
     initial_pose = PoseStamped()
     initial_pose.header.frame_id = "map"
     initial_pose.header.stamp = navigator.get_clock().now().to_msg()
@@ -172,14 +171,23 @@ def main():
     initial_pose.pose.position.y = 0.0
     initial_pose.pose.orientation.w = 1.0
 
-    # Wait for Nav2 to be active. Assumes robot is already localized.
     navigator.waitUntilNav2Active()
+
+    # --- START OF RE-ADDED LOCALIZATION LOGIC ---
+    navigator.get_logger().info("Setting initial pose to (0,0) on the map.")
+    navigator.setInitialPose(initial_pose)
 
     cmd_vel_pub = navigator.create_publisher(
         Twist, "/diffbot_base_controller/cmd_vel_unstamped", 10
     )
 
-    # --- SCRIPT NOW STARTS DIRECTLY WITH THE FIRST GOAL ---
+    navigator.get_logger().info(
+        "Starting 360-degree rotation to aid localization..."
+    )
+    rotate_360_degrees(cmd_vel_pub, navigator)
+    navigator.get_logger().info("Localization spin complete.")
+    # --- END OF RE-ADDED LOCALIZATION LOGIC ---
+
     shelf_item_pose = PoseStamped()
     shelf_item_pose.header.frame_id = "map"
     shelf_item_pose.header.stamp = navigator.get_clock().now().to_msg()
@@ -188,7 +196,7 @@ def main():
     shelf_item_pose.pose.orientation.z = math.sin(-math.pi / 4)
     shelf_item_pose.pose.orientation.w = math.cos(-math.pi / 4)
     navigator.get_logger().info(
-        f"Robot is localized. Going to first goal: {goal_pos}"
+        f"Proceeding to first goal under shelf: {goal_pos}"
     )
     navigator.goToPose(shelf_item_pose)
 
@@ -470,6 +478,31 @@ def main():
 
     navigator.get_logger().info("Script finished.")
     exit(0)
+
+
+def rotate_360_degrees(publisher, node: Node, angular_speed=0.5):
+    """
+    Rotates the robot 360 degrees to help with localization.
+    """
+    twist = Twist()
+    twist.angular.z = angular_speed
+    # Time to rotate 2*pi radians (360 degrees)
+    rotation_time = 2 * math.pi / abs(angular_speed)
+    start_time = time.time()
+    rate_sleep_time = 0.1
+
+    while (time.time() - start_time) < rotation_time:
+        if not rclpy.ok():
+            node.get_logger().warn("ROS shutting down, stopping rotation.")
+            break
+        publisher.publish(twist)
+        time.sleep(rate_sleep_time)
+
+    # Stop the robot
+    if rclpy.ok():
+        twist.angular.z = 0.0
+        publisher.publish(twist)
+        time.sleep(0.5)
 
 
 if __name__ == "__main__":
