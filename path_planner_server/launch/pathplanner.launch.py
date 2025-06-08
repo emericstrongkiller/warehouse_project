@@ -90,7 +90,7 @@ def generate_launch_description():
             arguments=["-d", "/home/user/ros2_ws/src/warehouse_project/path_planner_server/rviz/path_planner.rviz"],
             parameters=[{"use_sim_time": use_sim_time}],
         ),
-
+        
         Node(
             package='nav2_lifecycle_manager',
             executable='lifecycle_manager',

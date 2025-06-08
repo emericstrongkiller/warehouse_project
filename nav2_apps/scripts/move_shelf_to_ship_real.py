@@ -141,8 +141,8 @@ def move_robot_timed(
 def main():
     ####################
     goal_pos = [5.4, 0.0]
-    shipping_pos = [2.3, 0.5]
-    shipping_pos2 = [2.3, 1.5]
+    shipping_pos = [2.2, 0.5]
+    shipping_pos2 = [2.2, 1.5]
     backward_move_duration = 3.0
     backward_move_speed = -0.2
     put_down_backward_duration = 6.0
@@ -175,7 +175,7 @@ def main():
     navigator.waitUntilNav2Active()
 
     cmd_vel_pub = navigator.create_publisher(
-        Twist, "/diffbot_base_controller/cmd_vel_unstamped", 10
+        Twist, "/cmd_vel", 10
     )
     navigator.get_logger().info("Starting 360-degree rotation...")
     rotate_360_degrees(cmd_vel_pub, navigator)
@@ -412,7 +412,6 @@ def main():
                     initial_pose.header.stamp = (
                         navigator.get_clock().now().to_msg()
                     )
-                    initial_pose.pose.position.x = -0.5
                     navigator.goToPose(initial_pose)
 
                     k = 0

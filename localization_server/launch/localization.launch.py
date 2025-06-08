@@ -78,6 +78,12 @@ def generate_launch_description():
         ),
 
         Node(
+            package="attach_shelf",
+            executable="approach_service_node",
+            name="approach_service_node",
+        ),
+
+        Node(
             package='nav2_lifecycle_manager',
             executable='lifecycle_manager',
             name='lifecycle_manager_localization',
